@@ -35,49 +35,17 @@ import java.util.NoSuchElementException;
 public class ImmutableConciseSet
 {
   private final static int CHUNK_SIZE = 10000;
+  private static boolean isConcise;
 
   public static ImmutableConciseSet newImmutableFromMutable(ConciseSet conciseSet)
   {
-    if (conciseSet == null || conciseSet.isEmpty()) {
-      return new ImmutableConciseSet();
-    }
-    int[] words = conciseSet.getWords();
-    IntList retVal = new IntList();
-    for(int i = 0; i<words.length; i++)
-    {
-    	if(ConciseSetUtils.isOneSequence(words[i]))
-    	{
-    		words[i] &= 0x0fffffff;
-    		words[i] |= ConciseSetUtils.SEQUENCE_1_FILL;
-    		words[i] += 1;
-    	}
-    	else
-    	{
-    		if(ConciseSetUtils.isZeroSequence(words[i]))
-    		{
-    			words[i] &= 0x0fffffff;
-    			words[i] += 1;
-    		}
-    		else
-    		{
-    			if(ConciseSetUtils.isAllOnesLiteral(words[i]))
-    			{
-    				words[i] = ConciseSetUtils.SEQUENCE_1_FILL + 1;
-    			}
-    			else
-    			{
-    				if(ConciseSetUtils.isAllZerosLiteral(words[i]))
-    				{
-    					words[i] = 1;
-    				}
-    			}
-    		}
-    	}
-    	addAndCompact(retVal, words[i]);
-    }
-    //return new ImmutableConciseSet(IntBuffer.wrap(words));
-    IntBuffer buffer =  IntBuffer.wrap(retVal.toArray());
-    return new ImmutableConciseSet(buffer);
+	  if (conciseSet == null || conciseSet.isEmpty()) {
+	      return new ImmutableConciseSet();
+	    }
+	    int[] words = conciseSet.getWords();
+	    
+	    ImmutableConciseSet.isConcise = true;
+	    return new ImmutableConciseSet(IntBuffer.wrap(words));
   }
 
   public static int compareInts(int x, int y)
@@ -219,6 +187,7 @@ public class ImmutableConciseSet
     while (itr.hasNext()) {
       addAndCompact(retVal, itr.next());
     }
+    ImmutableConciseSet.isConcise = false;
     IntBuffer buffer =  IntBuffer.wrap(retVal.toArray());
     return new ImmutableConciseSet(buffer);
   }
@@ -242,7 +211,7 @@ public class ImmutableConciseSet
 		  {
 			  if(ConciseSetUtils.isAllOnesLiteral(word))
 			  {
-				  word = 0x10000001;
+				  word = ConciseSetUtils.SEQUENCE_1_FILL + 1;
 			  }
 			  else
 			  {
@@ -258,7 +227,7 @@ public class ImmutableConciseSet
   private static void addAndCompact(IntList set, int wordToAdd)		//¸Ä
   {
     int length = set.length();
-    //wordToAdd = ConvertFill(wordToAdd);
+    wordToAdd = ConvertFill(wordToAdd);
     if (set.isEmpty()) {
       set.add(wordToAdd);
       return;
@@ -316,7 +285,7 @@ public class ImmutableConciseSet
     						int literalByte = ConciseSetUtils.isDirtyByte0Word(last) ? ConciseSetUtils.getDirty0(last) : ConciseSetUtils.getDirty1(last);
     						int literalkind = ConciseSetUtils.isDirtyByte0Word(last) ? 0 : 1;
     						int literalPos = ConciseSetUtils.isDirtyByte0Word(last) ? ConciseSetUtils.getDirtyByte0Pos(last) : ConciseSetUtils.getDirtyByte1Pos(last); 
-    						newWord = ConciseSetUtils.SEQUENCE_L_F + fillnum + literalByte << 8 + literalPos << 23 + literalkind << 26 + filltype << 25;
+    						newWord = ConciseSetUtils.SEQUENCE_L_F + fillnum + (literalByte << 8) + (literalPos << 23) + (literalkind << 26) + (filltype << 25);
     						set.set(length - 1,newWord);
     						return;
     					}
@@ -369,8 +338,8 @@ public class ImmutableConciseSet
     								}
     							}
     						}
-    						newWord = ConciseSetUtils.SEQUENCE_NI2L_F + fillnum + filltype << 7 + literalbyte[0] << 8 + literalbyte[1] << 16
-    							+ pos << 24 + filltype << 27;
+    						newWord = ConciseSetUtils.SEQUENCE_NI2L_F + fillnum + (filltype << 7) + (literalbyte[0] << 8) + (literalbyte[1] << 16)
+    							+ (pos << 24) + (literaltype << 27);
     						set.set(length - 1,newWord);
     						return;
     					}
@@ -410,7 +379,7 @@ public class ImmutableConciseSet
     	    						int literalByte = ConciseSetUtils.isDirtyByte0Word(last) ? ConciseSetUtils.getDirty0(last) : ConciseSetUtils.getDirty1(last);
     	    						int literalkind = ConciseSetUtils.isDirtyByte0Word(last) ? 0 : 1;
     	    						int literalPos = ConciseSetUtils.isDirtyByte0Word(last) ? ConciseSetUtils.getDirtyByte0Pos(last) : ConciseSetUtils.getDirtyByte1Pos(last); 
-    	    						newWord = ConciseSetUtils.SEQUENCE_L_F + fillnum + literalByte << 8 + literalPos << 23 + literalkind << 26 + filltype << 25;
+    	    						newWord = ConciseSetUtils.SEQUENCE_L_F + fillnum + (literalByte << 8) + (literalPos << 23) + (literalkind << 26) + (filltype << 25);
     	    						set.set(length - 1,newWord);
     	    						return;
     	    					}
@@ -463,8 +432,8 @@ public class ImmutableConciseSet
         								}
         							}
         						}
-        						newWord = ConciseSetUtils.SEQUENCE_NI2L_F + fillnum + filltype << 7 + literalbyte[0] << 8 + literalbyte[1] << 16
-        							+ pos << 24 + filltype << 27;
+        						newWord = ConciseSetUtils.SEQUENCE_NI2L_F + fillnum + (filltype << 7) + (literalbyte[0] << 8) + (literalbyte[1] << 16)
+        							+ (pos << 24) + (filltype << 27);
         						set.set(length - 1,newWord);
         						return;
         					}

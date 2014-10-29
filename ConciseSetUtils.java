@@ -257,7 +257,8 @@ public class ConciseSetUtils
   public static int getSequenceCount(int word)
   {
     // get the 25 LSB bits
-    return word & 0x0FFFFFFF;		//¸Ä
+    //return word & 0x0FFFFFFF;		//¸Ä
+	  return word & 0x03FFFFFF;
   }
 
   public static int getSequenceNumWords(int word)
@@ -678,7 +679,7 @@ public class ConciseSetUtils
 	  int []pos = new int[2];
 	  int []Byte = new int[2];
 	  int t=0;
-	  if(isDirtyByte0Word(word))
+	  if(isDirtyByte0WordBy2(word))
 	  {
 		  pos = getDirtyByte0PosBy2(word);
 		  //return (word & (0x000000ff << (8*pos))) >>> (8*pos);
@@ -692,6 +693,7 @@ public class ConciseSetUtils
 		  default: Byte[t] = (word & 0x7f000000) >>> 24;
 		  }
 		  }
+		  return Byte;
 	  }
 	  return null;
   }
@@ -719,7 +721,7 @@ public class ConciseSetUtils
 	  int []pos = new int[2];
 	  int []Byte = new int[2];
 	  int t=0;
-	  if(isDirtyByte0Word(word))
+	  if(isDirtyByte0WordBy2(word))
 	  {
 		  pos = getDirtyByte0PosBy2(word);
 		  //return (word & (0x000000ff << (8*pos))) >>> (8*pos);
@@ -733,6 +735,7 @@ public class ConciseSetUtils
 				  default: Byte[t] = ((~word & 0x7f000000) >>> 24) ^ 0x000000ff;
 			  }
 		  }
+		  return Byte;
 	  }
 	  return null;
   }
