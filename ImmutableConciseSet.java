@@ -35,7 +35,7 @@ import java.util.NoSuchElementException;
 public class ImmutableConciseSet
 {
   private final static int CHUNK_SIZE = 10000;
-  private static boolean isConcise;
+  //private static boolean isConcise;
 
   public static ImmutableConciseSet newImmutableFromMutable(ConciseSet conciseSet)
   {
@@ -44,7 +44,8 @@ public class ImmutableConciseSet
 	    }
 	    int[] words = conciseSet.getWords();
 	    
-	    ImmutableConciseSet.isConcise = true;
+	    //ImmutableConciseSet.isConcise = true;
+	    
 	    return new ImmutableConciseSet(IntBuffer.wrap(words));
   }
 
@@ -187,7 +188,7 @@ public class ImmutableConciseSet
     while (itr.hasNext()) {
       addAndCompact(retVal, itr.next());
     }
-    ImmutableConciseSet.isConcise = false;
+    //ImmutableConciseSet.isConcise = false;
     IntBuffer buffer =  IntBuffer.wrap(retVal.toArray());
     return new ImmutableConciseSet(buffer);
   }
@@ -227,7 +228,7 @@ public class ImmutableConciseSet
   private static void addAndCompact(IntList set, int wordToAdd)		//¸Ä
   {
     int length = set.length();
-    wordToAdd = ConvertFill(wordToAdd);
+    //wordToAdd = ConvertFill(wordToAdd);
     if (set.isEmpty()) {
       set.add(wordToAdd);
       return;
@@ -744,7 +745,7 @@ public class ImmutableConciseSet
     if (retVal.isEmpty()) {
       return new ImmutableConciseSet();
     }
-    return new ImmutableConciseSet(IntBuffer.wrap(retVal.toArray()));
+    return new ImmutableConciseSet(IntBuffer.wrap(retVal.toArray()),true);
   }
 
   public static ImmutableConciseSet doIntersection(Iterator<ImmutableConciseSet> sets)
@@ -970,7 +971,7 @@ public class ImmutableConciseSet
     if (retVal.isEmpty()) {
       return new ImmutableConciseSet();
     }
-    return new ImmutableConciseSet(IntBuffer.wrap(retVal.toArray()));
+    return new ImmutableConciseSet(IntBuffer.wrap(retVal.toArray()), true);
   }
 
   public static ImmutableConciseSet doComplement(ImmutableConciseSet set)
@@ -1013,7 +1014,7 @@ public class ImmutableConciseSet
     if (retVal.isEmpty()) {
       return new ImmutableConciseSet();
     }
-    return new ImmutableConciseSet(IntBuffer.wrap(retVal.toArray()));
+    return new ImmutableConciseSet(IntBuffer.wrap(retVal.toArray()),true);
   }
 
   // Based on the ConciseSet implementation by Alessandro Colantonio
@@ -1053,6 +1054,11 @@ public class ImmutableConciseSet
   public ImmutableConciseSet(ByteBuffer byteBuffer)
   {
     this.words = byteBuffer.asIntBuffer();
+    int[] word = words.array();
+    for(int i = 0;i<word.length ; i++)
+    {
+    	word[i] = ConvertFill(word[i]);
+    }
     this.lastWordIndex = words.capacity() - 1;
     this.size = calcSize();
   }
@@ -1060,10 +1066,27 @@ public class ImmutableConciseSet
   public ImmutableConciseSet(IntBuffer buffer)
   {
     this.words = buffer;
+    int[] word = words.array();
+    for(int i = 0;i<word.length ; i++)
+    {
+    	word[i] = ConvertFill(word[i]);
+    }
     this.lastWordIndex = (words == null || buffer.capacity() == 0) ? -1 : words.capacity() - 1;
     this.size = calcSize();
   }
-
+  /**
+   * important modification for the construct function
+   * @param buffer
+   * @param isicx
+   */
+  public ImmutableConciseSet(IntBuffer buffer, boolean isicx)
+  {
+    this.words = buffer;
+    int[] word = words.array();
+    this.lastWordIndex = (words == null || buffer.capacity() == 0) ? -1 : words.capacity() - 1;
+    this.size = calcSize();
+  }
+  
   public byte[] toBytes()
   {
     ByteBuffer buf = ByteBuffer.allocate(words.capacity() * Ints.BYTES);
